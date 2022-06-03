@@ -1,0 +1,71 @@
+version: '3'
+
+services:
+  thingsboard:
+    restart: unless-stopped
+    image: thingsboard/tb-postgres
+    environment:
+      - TB_QUEUE_TYPE=in-memory
+      - TZ=Europe/Amsterdam
+      - MQTT_SSL_ENABLED=true
+      - MQTT_SSL_CREDENTIALS_TYPE=PEM
+      - MQTT_SSL_PEM_CERT=/certs/server.pem
+      - MQTT_SSL_PEM_KEY=/certs/server_key.pem
+      - MQTT_SSL_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT=true
+    volumes:
+      - type: bind
+        source: ./thingsboard/data
+        target: /data
+      - type: bind
+        source: ./thingsboard/logs
+        target: /var/log/thingsboard
+      - type: bind
+        source: ./thingsboard/certs
+        target: /certs
+    ports:
+      - 1883:1883
+      - 8883:8883
+      - 7070:7070
+      - 5683-5688:5683-5688/udp
+
+  nginx:
+    restart: unless-stopped
+    image: lscr.io/linuxserver/swag
+    environment:
+      - TZ=Europe/Amsterdam
+      - PUID=1000
+      - PGID=1000
+      - URL=ddss-sensebox.nl
+      - SUBDOMAINS=test,mail
+      - VALIDATION=http
+      - ONLY_SUBDOMAINS=true
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - type: bind
+        source: ./nginx
+        target: /config
+
+  poste:
+    restart: unless-stopped
+    image: analogic/poste.io
+    ports:
+      - 25:25
+      - 110:110
+      - 143:143
+      - 465:465
+      - 587:587
+      - 993:993
+      - 995:995
+      - 4190:4190
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Amsterdam
+      - HTTPS=OFF
+      - DISABLE_CLAMAV=TRUE
+    volumes:
+      - type: bind
+        source: ./poste
+        target: /data

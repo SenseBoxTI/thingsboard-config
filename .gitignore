@@ -1,0 +1,11 @@
+nginx/*
+!nginx/nginx
+nginx/nginx/proxy-confs
+nginx/nginx/authelia*
+nginx/nginx/ldap.conf
+
+poste/*
+!poste/server.ini
+!poste/users.db
+
+thingsboard/*
