@@ -34,6 +34,7 @@ services:
   postgresql:
     restart: unless-stopped
     image: postgres:12-alpine
+    user: 1000:1000
     environment:
       - TZ=Europe/Amsterdam
       - POSTGRES_USER=postgres
@@ -43,6 +44,10 @@ services:
       - type: bind
         source: ./postgresql
         target: /var/lib/postgresql/data
+      - type: bind
+        source: /etc/passwd
+        target: /etc/passwd
+        read_only: true
     ports:
       - 5432:5432
     networks:
