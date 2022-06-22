@@ -9,3 +9,7 @@ poste/*
 !poste/users.db
 
 thingsboard/*
+
+postgresql/*
+!postgresql/pg_hba.conf
+!postgresql/postgresql.conf
