@@ -30,6 +30,8 @@ services:
       - 8883:8883
       - 7070:7070
       - 5683-5688:5683-5688/udp
+    networks:
+      thingsboard_nw:
 
   postgresql:
     restart: unless-stopped
@@ -71,6 +73,8 @@ services:
       - type: bind
         source: ./nginx
         target: /config
+    networks:
+      thingsboard_nw:
 
   poste:
     restart: unless-stopped
@@ -94,3 +98,12 @@ services:
       - type: bind
         source: ./poste
         target: /data
+    networks:
+      thingsboard_nw:
+
+networks:
+  thingsboard_nw:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.0.0/24
