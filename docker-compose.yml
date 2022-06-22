@@ -63,7 +63,7 @@ services:
       - PUID=1000
       - PGID=1000
       - URL=ddss-sensebox.nl
-      - SUBDOMAINS=test,mail
+      - SUBDOMAINS=test,mail,adminer.test
       - VALIDATION=http
       - ONLY_SUBDOMAINS=true
     ports:
@@ -98,6 +98,12 @@ services:
       - type: bind
         source: ./poste
         target: /data
+    networks:
+      thingsboard_nw:
+
+  adminer:
+    restart: unless-stopped
+    image: adminer
     networks:
       thingsboard_nw:
 
