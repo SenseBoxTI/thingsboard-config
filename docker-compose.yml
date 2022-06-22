@@ -12,6 +12,9 @@ services:
       - MQTT_SSL_PEM_CERT=/certs/server.pem
       - MQTT_SSL_PEM_KEY=/certs/server_key.pem
       - MQTT_SSL_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT=true
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/thingsboard
+      - SPRING_DATASOURCE_USERNAME=thingsboard
+      - SPRING_DATASOURCE_PASSWORD=
     volumes:
       - type: bind
         source: ./thingsboard/data
@@ -27,6 +30,23 @@ services:
       - 8883:8883
       - 7070:7070
       - 5683-5688:5683-5688/udp
+
+  postgresql:
+    restart: unless-stopped
+    image: postgres:12-alpine
+    environment:
+      - TZ=Europe/Amsterdam
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=thingsboard
+    volumes:
+      - type: bind
+        source: ./postgresql
+        target: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      thingsboard_nw:
 
   nginx:
     restart: unless-stopped
