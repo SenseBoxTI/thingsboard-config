@@ -84,7 +84,7 @@ cd ~/thingsboard
 
 ## Installatie
 
-Voor het installeren van alle services zijn een aantal korte stappen nodig. 
+Voor het installeren van alle services zijn een aantal korte stappen nodig.
 
 NOTE: *Het kan zijn dat een aantal mappen tijdelijk hernoemt moeten worden zodat deze leeg beginnen wanneer de container voor het eerst aangemaakt wordt*.
 
@@ -169,5 +169,9 @@ Dit is vastgelegd in het bestand *postgresql/postgresql.conf*, pas listen `liste
 ### Postgresql | Login methodes voor hosts aanpassen
 
 Voor verschillende IP addressen (hosts) kunnen login methodes aangewezen worden. Zo is het privé docker netwerk (172.17.0.0/24) waar de containers op aangesloten zijn een vertrouwd netwerk (*trust*). Als we externe verbindingen willen toestaan kunnen we dit beter beveiligen. De configuratie hiervan staat in het *postgresql/pg_hba.conf* bestand. Meer informatie over deze configuratie staat beschreven in de [documentatie van Postgresql](https://www.postgresql.org/docs/current/auth-pg-hba-conf.html).
+
+## Note
+
+Het kan zijn dat voor sommige containers bij de eerste keer opstarten de gemapte docker map mount leeg moet zijn. Hernoem dan de betreffende map, maak een nieuwe map aan met de zelfde naam en kopieer de configuratie bestanden terug in de map nadat de container volledig opgestart is. De logs van een container kan met `docker logs <container_name>`. Gebruik -f voor follow en --tail kan gebruikt worden om het aan regels dat je wilt zien.
 
 © Data Driven Smart Society - door [Luc Appelman](https://github.com/controlol)
