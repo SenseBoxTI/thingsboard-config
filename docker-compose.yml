@@ -13,8 +13,8 @@ services:
       - MQTT_SSL_PEM_KEY=/certs/server_key.pem
       - MQTT_SSL_SKIP_VALIDITY_CHECK_FOR_CLIENT_CERT=true
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/thingsboard
-      - SPRING_DATASOURCE_USERNAME=thingsboard
-      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
     volumes:
       - type: bind
         source: ./thingsboard/data
