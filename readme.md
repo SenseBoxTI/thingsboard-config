@@ -114,6 +114,9 @@ sudo chown -R 799:799 thingsboard/certs
 ```
 
 ### Starten van Thingsboard
+Voorafgaand aan het starten van thingsboard is het aan te bevelen om de standaard wachtwoorden van de postgresql service aan te passen. Dit kan binnen het bestand *docker-compose.yml*
+
+In het bestand staan 2 environment variabelen (*- SPRING_DATASOURCE_PASSWORD=postgres* & *- POSTGRES_PASSWORD=postgres*). Pas deze beide aan naar een nieuw wachtwoord dat jij bepaald. Denk hierbij eraan dat in beide gevallen het wachtwoord hetzelfde moet zijn. Je kan dus niet 1 variabele hebben met het wachtwoord "abc" en een ander met "cba".
 
 Thingsboard draait vanuit een geïsoleerde omgeving dankzij Docker. Dit maakt het ook makkelijk en snel om updates uit te voeren.
 
