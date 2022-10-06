@@ -28,7 +28,7 @@ Voor dat de docker images gebruikt kunnen worden moeten er een aantal dingen voo
 
 ### Docker installeren
 
-Installeer docker op het systeem en voeg de hoofdgebruiker toe aan de docker groep. Dit is uitgelegd op de [installatie pagina van Docker voor Ubuntu](https://docs.docker.com/engine/install/ubuntu/), en de [post installatin steps pagina](https://docs.docker.com/engine/install/linux-postinstall/). Voor de compleetheid zijn de commando's hieronder ook nog neergezet.
+Installeer docker op het systeem en voeg de hoofdgebruiker toe aan de docker groep. Dit is uitgelegd op de [installatie pagina van Docker voor Ubuntu](https://docs.docker.com/engine/install/ubuntu/), en de [post installation steps pagina](https://docs.docker.com/engine/install/linux-postinstall/). Voor de compleetheid zijn de commando's hieronder ook nog neergezet.
 
 ```sh
 # Set up the repository
@@ -73,6 +73,26 @@ Voor het platform is het nodig om een aantal poorten te openen zodat deze van bu
 - 995 (imap ssl)
 - 4190 (mail sieve)
 
+### Domeinnaam koppelen
+
+Om een verbinding te maken met de Thingsboard omgeving via het world wide web is er een domeinnaam nodig. Alleen zo kan er een beveiligde verbinding tot stand gebracht worden (tenzei je voor een betaalde oplossing kiest die wel IP adressen kan beveiligen maar het kopen van een domeinnaam is goedkoper dan zo een oplossing). Bedenk dit dus voor het aanmaken van jou omgeving (het propageren over het hele web kan namelijk wel tot 24 uur duren). Deze verwijzingen zijn nodig om de installatie zonder errors te laten verlopen.
+
+Denk hierbij aan het domeinnaam wat jij hebt en wilt gaan gebruiken hiervoor, Hierbij een voorbeeld:
+
+We hebben de azure server "127.0.0.1" en het domeinnaam "sensebox.nl" en willen deze gaan instellen om te gebruiken voor de verbinding naar thingsboard ( dit domeinnaam en ip adres is natuurlijk fictief kies hier uiteraard je eigen domeinnaam en ip adres ).
+
+We willen de thingsboard omgeving benaderen door naar "sensebox.nl" te gaan daarvoor zal een DNS record aangemaakt moeten worden die naar de server wijst.
+
+sensebox.nl -> 127.0.0.1
+
+Thingsboard maakt gebruik van een mailserver om zo informatie door te sturen aan geregistreerde gebruikers. Deze mailserver word standaard bijgeleverd met deze installatie maar het kan ook zo zijn dat je een eigen hebt. Voor deze uitleg gaan we er van uit dat je deze niet hebt, maak dan ook een record aan genaamt "mail.sensebox.nl"
+
+mail.sensebox.nl -> 127.0.0.1
+
+Voor de database manager die we ook via het web willen benaderen maken we ook een subdomein aan deze noemen we "adminer.sensebox.nl"
+
+adminer.sensebox.nl -> 127.0.0.1
+
 ### De repository clonen
 
 In deze repository staan de meeste bestanden die je nodig hebt om een **nieuwe** installatie van Thingsboard te installeren. Het onderstaande commando cloned het project naar *~/thingsboard*.
@@ -86,11 +106,11 @@ cd ~/thingsboard
 
 Voor het installeren van alle services zijn een aantal korte stappen nodig.
 
-NOTE: *Het kan zijn dat een aantal mappen tijdelijk hernoemt moeten worden zodat deze leeg beginnen wanneer de container voor het eerst aangemaakt wordt*.
-
 ### Vereiste mappen aanmaken
 
 Als het goed is zit je nu al in de *thingsboard* map, waar je de repository naartoe hebt gecloned. Om Thingsboard goed te kunnen starten moeten we een aantal mappen aanmaken waar configuratie bestanden in komen te staan.
+
+NOTE: *Als een van deze mappen al bestaat is het van belang om deze te legen het overzetten van de configuraties word namelijk verder in het proces uitgelegd*.
 
 ```sh
 cd ~/thingsboard
@@ -98,11 +118,15 @@ mkdir -p thingsboard/data thingsboard/logs thingsboard/certs postgresql
 sudo chown -R 799:799 thingsboard
 ```
 
+## Aanpassingen maken aan de configuratie
+
 ### MQTT certificaat
 
 Om MQTT apparaten beveiligd te verbinden met de ingebouwde MQTT server van Thingsboard moeten we certificaten specificeren die Thingsboard kan gebruiken voor de verbinding. In de configuratie hebben we aangegeven dat deze opgeslagen zullen zijn */certs/server.pem* en */certs/server_key.pem*. De map *thingsboard/certs* is gemapped naar */certs* in de container, de public key (server.pem) en private key (server_key.pem) moet dus in de *thingsboard/certs* map staan.
 
-Het is aangeraden om de key waarden van de bestaande server over te nemen en deze simpelweg de tekst te plakken in het bestand met `sudo echo "{key_waarde}" > thingsboard/server.pem`  of `sudo nano thingsboard/server.pem`. Als je dit niet doet moeten de keys van alle devices ook veranderd worden om nog te kunnen verbinden met de MQTT server.
+Voor de test server is er al een key aangemaakt die ook is ingeprogrammeerd in de SenseBox, daarom is het wellicht handig om deze voor de installatie over te nemen anders zul je alle apparaten die op het huidige moment verbinden met de test server opnieuw moeten voorzien van een key om zo weer veilig te kunnen verbinden via MQTT.
+
+Het ophalen van de keys kun je doen door in te loggen op de test server en vervolgens te navigeren naar de certs folder, Hierin staat een public key en een private key. Beide kan je met `cat server.pem & cat server_key.pem` uitlezen. Kopieer deze en plaats deze vervolgens in de zelfde mappen structuur op de nieuwe server door te navigeren naar de folder en dan het commando `sudo nano server.pem` & `sudo nano server_key.pem` Let wel op dat je de juiste key op de juiste plek plaatst.
 
 Het is ook mogelijk om nieuwe keys te genereren zoals beschreven in de [documentatie van Thingsboard](https://thingsboard.io/docs/user-guide/mqtt-over-ssl/). Zorg er voor dat de key bestanden in de certs map komen te staan met de juiste naam.
 
@@ -112,34 +136,6 @@ In beide gevallen moet de eigenaar van de bestanden bijgewerkt worden zodat de t
 cd ~/thingsboard
 sudo chown -R 799:799 thingsboard/certs
 ```
-
-### Starten van Thingsboard
-Voorafgaand aan het starten van thingsboard is het aan te bevelen om de standaard wachtwoorden van de postgresql service aan te passen. Dit kan binnen het bestand *docker-compose.yml*
-
-In het bestand staan 2 environment variabelen (*- SPRING_DATASOURCE_PASSWORD=postgres* & *- POSTGRES_PASSWORD=postgres*). Pas deze beide aan naar een nieuw wachtwoord dat jij bepaald. Denk hierbij eraan dat in beide gevallen het wachtwoord hetzelfde moet zijn. Je kan dus niet 1 variabele hebben met het wachtwoord "abc" en een ander met "cba".
-
-Thingsboard draait vanuit een geïsoleerde omgeving dankzij Docker. Dit maakt het ook makkelijk en snel om updates uit te voeren.
-
-Voor het starten van Thingsboard is niet meer nodig dan één command.
-
-```sh
-cd ~/thingsboard
-docker-compose up -d
-```
-
-## Updates installeren
-
-Als je updates wilt toe passen kan dat met de onderstaande commando's.
-
-```sh
-cd ~/thingsboard
-docker-compose pull
-docker-compose up -d
-```
-
-Hierna zullen alle services geüpdatet zijn naar de nieuwst beschikbare versie. Dit process duurt slechts enkele minuten en resulteert in bijna geen down-time.
-
-## Aanpassingen maken aan de configuratie
 
 ### Thingsboard | Server configuratie
 
@@ -172,6 +168,62 @@ Dit is vastgelegd in het bestand *postgresql/postgresql.conf*, pas listen `liste
 ### Postgresql | Login methodes voor hosts aanpassen
 
 Voor verschillende IP addressen (hosts) kunnen login methodes aangewezen worden. Zo is het privé docker netwerk (172.17.0.0/24) waar de containers op aangesloten zijn een vertrouwd netwerk (*trust*). Als we externe verbindingen willen toestaan kunnen we dit beter beveiligen. De configuratie hiervan staat in het *postgresql/pg_hba.conf* bestand. Meer informatie over deze configuratie staat beschreven in de [documentatie van Postgresql](https://www.postgresql.org/docs/current/auth-pg-hba-conf.html).
+
+
+## Starten van Thingsboard
+
+### De eerste keer
+
+Voorafgaand aan het starten van thingsboard is het aan te bevelen om de standaard wachtwoorden van de postgresql service aan te passen. Dit kan binnen het bestand *docker-compose.yml*
+
+In het bestand staan 2 environment variabelen (*- SPRING_DATASOURCE_PASSWORD=postgres* & *- POSTGRES_PASSWORD=postgres*). Pas deze beide aan naar een nieuw wachtwoord dat jij bepaald. Denk hierbij eraan dat in beide gevallen het wachtwoord hetzelfde moet zijn. Je kan dus niet 1 variabele hebben met het wachtwoord "abc" en een ander met "cba".
+
+De eerste keer opstarten zal nog niet losgekoppeld zijn van de terminal. Dit zullen we doen met het volgende commando
+```sh
+cd ~/thingsboard
+docker-compose up
+```
+
+Zodra deze is opgestart zal er gewacht moeten worden totdat de installatie voltooid is (dit kan tot 5 minuten duren afhankelijk van de server). Zodra de server klaar is met het installeren moeten er nog een aantal configuraties omgezet worden. Sluit de docker af door op `ctrl + c` te drukken en wacht totdat je weer in de normale terminal zit.
+
+Vervolgens gaan we de configuraties omzetten.
+
+```sh
+cd ~/thingsboard
+cp ./postgresqlcfg/postgresql.conf ./postgresql
+cp ./postgresqlcfg/pg_hba.conf ./postgresql
+```
+
+Nu zijn we klaar en kan de omgeving normaal gestart worden.
+
+### Na installatie
+
+Thingsboard draait vanuit een geïsoleerde omgeving dankzij Docker. Dit maakt het ook makkelijk en snel om updates uit te voeren.
+
+Voor het starten van Thingsboard is niet meer nodig dan één command.
+
+```sh
+cd ~/thingsboard
+docker-compose up -d
+```
+
+Om de container in te komen kan je het volgende commando gebruiken
+```sh
+cd ~/thingsboard
+docker exec -it thingsboard-thingsboard1 bash
+```
+
+## Updates installeren
+
+Als je updates wilt toe passen kan dat met de onderstaande commando's.
+
+```sh
+cd ~/thingsboard
+docker-compose pull
+docker-compose up -d
+```
+
+Hierna zullen alle services geüpdatet zijn naar de nieuwst beschikbare versie. Dit process duurt slechts enkele minuten en resulteert in bijna geen down-time.
 
 ## Note
 

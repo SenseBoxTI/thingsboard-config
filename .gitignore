@@ -10,6 +10,7 @@ poste/*
 
 thingsboard/*
 
-postgresql/*
+postgresql
+postgresqlcfg/*
 !postgresql/pg_hba.conf
 !postgresql/postgresql.conf
